@@ -4,7 +4,6 @@
     {
         public long CustomerId { get; set; }
         public decimal Score { get; set; }
-        public int Rank { get; set; }
 
         public CustomerModel(long customerId, decimal score)
         {
