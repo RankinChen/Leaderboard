@@ -116,16 +116,8 @@ namespace Leaderboard.Repository
 
         private int FindCustomerRank(long customerId, CustomerModel newCustomerModel)
         {
-            var rank = 1;
-            foreach (var item in _customersSorted)
-            {
-                if (item.CustomerId == customerId && item.Score == newCustomerModel.Score)
-                    return rank;
-                if (item.CompareTo(newCustomerModel) >= 0)
-                    return rank;
-                rank++;
-            }
-            return rank;
+            var view = _customersSorted.GetViewBetween(new CustomerModel(long.MinValue, decimal.MaxValue), newCustomerModel);
+            return view.Count;
         }
 
         public IEnumerable<CustomerModel> GetLeaderboards(int start, int end)

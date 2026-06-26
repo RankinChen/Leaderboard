@@ -4,7 +4,6 @@ namespace Leaderboard.Dtos
     {
         public long CustomerId { get; set; }
         public decimal Score { get; set; }
-        public int Rank { get; set; }
 
         public CustomerModel(long customerId, decimal score)
         {
@@ -19,17 +18,6 @@ namespace Leaderboard.Dtos
             int cmp = other.Score.CompareTo(this.Score);
             if (cmp != 0) return cmp;
             return this.CustomerId.CompareTo(other.CustomerId);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is not CustomerModel other) return false;
-            return CustomerId == other.CustomerId && Score == other.Score;
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(CustomerId, Score);
         }
     }
 }
