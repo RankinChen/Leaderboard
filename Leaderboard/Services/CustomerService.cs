@@ -17,24 +17,18 @@ namespace Leaderboard.Services
 
         public async Task<decimal> Update(long id, decimal score)
         {
-            return await _repository.Update(id, score);
+            return await Task.FromResult(_repository.Update(id, score));
         }
 
         public async Task<IEnumerable<CustomerModel>> GetLeaderboards(LeaderBoardQuery query)
         {
-            var customers = await _repository.GetLeaderboards(query.Start, query.End);
+            var customers = await Task.FromResult(_repository.GetLeaderboards(query.Start, query.End));
             return customers;
         }
 
         public async Task<IEnumerable<CustomerModel>> GetNeighborhoods(long customerId, NeighborhoodQuery query)
         {
-            var customerRank = await _repository.GetCustomerRank(customerId);
-            if (customerRank < 0) return new List<CustomerModel>();
-
-            var beginRank = query.CalcBeginRank(customerRank);
-            var endRank = query.CalcEndRank(customerRank);
-
-            var customers = await _repository.GetLeaderboards(beginRank, endRank);
+            var customers = await Task.FromResult(_repository.GetNeighborhoods(customerId, query));
             return customers;
         }
     }
