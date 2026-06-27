@@ -106,8 +106,7 @@ namespace Leaderboard.Repository
 
             return _customersSortedSnapshoot.GetRange(start - 1, end - start + 1);
         }
-
-        public int GetCustomerRank(long customerId)
+        private int GetCustomerRank(long customerId)
         {
             _lock.EnterReadLock();
             try
