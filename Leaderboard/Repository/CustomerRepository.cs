@@ -9,7 +9,7 @@ namespace Leaderboard.Repository
         private readonly SortedSet<CustomerModel> _customersSorted;     //排序数据
         private readonly Dictionary<long, decimal> _customerScores;     //客户分数数据
         private volatile bool _rebuildSnapshot;
-        private int _rebuildingFlag;
+        private int _rebuildingFlag;    
         private List<CustomerModel> _customersSortedSnapshoot; //排序数据的快照
         public CustomerRepository(
             ILogger<CustomerRepository> logger)
