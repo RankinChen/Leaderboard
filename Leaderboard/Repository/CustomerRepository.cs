@@ -108,25 +108,11 @@ namespace Leaderboard.Repository
         }
         private int GetCustomerRank(long customerId)
         {
-            _lock.EnterReadLock();
-            try
-            {
-                var score = GetCustomerScore(customerId);
+            var score = GetCustomerScore(customerId);
 
-                var customerModel = new CustomerModel(customerId, score);
-                var view = _customersSorted.GetViewBetween(new CustomerModel(long.MinValue, decimal.MaxValue), customerModel);
-
-                return view.Count;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"GetCustomerRank Exception:{ex}");
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
-            return -1;
+            var customerModel = new CustomerModel(customerId, score);
+            var view = _customersSorted.GetViewBetween(new CustomerModel(long.MinValue, decimal.MaxValue), customerModel);
+            return view.Count;
         }
         private decimal GetCustomerScore(long customerId)
         {
