@@ -7,9 +7,10 @@ namespace Leaderboard.Repository
         private readonly ILogger<CustomerRepository> _logger;
         private readonly ReaderWriterLockSlim _lock;
         private readonly SortedSet<CustomerModel> _customersSorted;     //排序数据
-        private readonly List<CustomerModel> _customersSortedSnapshoot; //排序数据的快照
         private readonly Dictionary<long, decimal> _customerScores;     //客户分数数据
-
+        private volatile bool _rebuildSnapshot;
+        private int _rebuildingFlag;
+        private List<CustomerModel> _customersSortedSnapshoot; //排序数据的快照
         public CustomerRepository(
             ILogger<CustomerRepository> logger)
         {
@@ -18,6 +19,7 @@ namespace Leaderboard.Repository
             this._customersSorted = new SortedSet<CustomerModel>();
             this._customersSortedSnapshoot = new List<CustomerModel>();
             this._customerScores = new Dictionary<long, decimal>();
+            this._rebuildSnapshot = false;
         }
 
         public decimal Update(long customerId, decimal score)
@@ -28,8 +30,6 @@ namespace Leaderboard.Repository
             {
                 var newCustomerModel = ModifySorted(customerId, score);
                 ModifyScores(customerId, newCustomerModel);
-
-                RebuildCustomersSnapshoot();
 
                 newScore = newCustomerModel.Score;
             }
@@ -58,13 +58,27 @@ namespace Leaderboard.Repository
             var customerModel = new CustomerModel(customerId, newScore);
             _customersSorted.Add(customerModel);
 
+            _rebuildSnapshot = true;
+
             return customerModel;
         }
         private void RebuildCustomersSnapshoot()
         {
-            _customersSortedSnapshoot.Clear();
+            if (!_rebuildSnapshot)
+                return;
 
-            _customersSortedSnapshoot.AddRange(_customersSorted.ToList());
+            if (Interlocked.CompareExchange(ref _rebuildingFlag, 1, 0) != 0)
+                return;
+
+            try
+            {
+                _customersSortedSnapshoot = _customersSorted.ToList();
+                _rebuildSnapshot = false;
+            }
+            finally
+            {
+                _rebuildingFlag = 0;
+            }
         }
 
         private void ModifyScores(long customerId, CustomerModel newCustomerModel)
@@ -81,6 +95,8 @@ namespace Leaderboard.Repository
             _lock.EnterReadLock();
             try
             {
+                RebuildCustomersSnapshoot();
+
                 return GetLeaderboardRange(start, end);
             }
             catch (Exception ex)
@@ -124,6 +140,8 @@ namespace Leaderboard.Repository
             _lock.EnterReadLock();
             try
             {
+                RebuildCustomersSnapshoot();
+
                 var customerRank = GetCustomerRank(customerId);
 
                 var beginRank = query.CalcBeginRank(customerRank);
