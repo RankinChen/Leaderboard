@@ -20,6 +20,7 @@ namespace Leaderboard.Repository
             this._customersSortedSnapshoot = new List<CustomerModel>();
             this._customerScores = new Dictionary<long, decimal>();
             this._rebuildSnapshot = false;
+            this._rebuildingFlag = 0;
         }
 
         public decimal Update(long customerId, decimal score)
@@ -30,6 +31,8 @@ namespace Leaderboard.Repository
             {
                 var newCustomerModel = ModifySorted(customerId, score);
                 ModifyScores(customerId, newCustomerModel);
+
+                _rebuildSnapshot = true;
 
                 newScore = newCustomerModel.Score;
             }
@@ -57,8 +60,6 @@ namespace Leaderboard.Repository
             newScore = oldScore + score;
             var customerModel = new CustomerModel(customerId, newScore);
             _customersSorted.Add(customerModel);
-
-            _rebuildSnapshot = true;
 
             return customerModel;
         }
